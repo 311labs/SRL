@@ -1,0 +1,171 @@
+Import(["env"])
+
+
+platform = str(Platform())
+srl_src = Split("""version.cpp
+String.cpp
+Date.cpp
+Time.cpp
+DateTime.cpp
+Timer.cpp
+Console.cpp
+sys/System.cpp
+sys/Mutex.cpp
+sys/Semaphore.cpp
+sys/Process.cpp
+sys/Thread.cpp
+sys/ThreadPool.cpp
+sys/SystemInfo.cpp
+sys/CpuInfo.cpp
+sys/ProcessList.cpp
+io/TextReader.cpp
+io/TextWriter.cpp
+io/BinaryReader.cpp
+io/BinaryWriter.cpp
+io/ByteBuffer.cpp
+fs/FS.cpp
+fs/FsObject.cpp
+fs/Directory.cpp
+fs/File.cpp
+fs/TextFile.cpp
+fs/FileStream.cpp
+fs/BinaryFile.cpp
+log/Logger.cpp
+log/LogFile.cpp
+log/SysLog.cpp
+net/InetAddress.cpp
+net/InetSocketAddress.cpp
+net/Socket.cpp
+net/DatagramSocket.cpp
+net/MulticastSocket.cpp
+net/TcpSocket.cpp
+net/IcmpMessage.cpp
+net/IcmpSocket.cpp
+net/icmpdll.cpp
+net/ServerSocket.cpp
+net/NetworkInterface.cpp
+net/HttpClient.cpp
+net/HttpHeaders.cpp
+net/HttpServer.cpp
+net/URI.cpp
+util/CheckSum.cpp
+util/Base64.cpp
+math/Random.cpp
+app/ArgumentParser.cpp
+app/IniParser.cpp
+xml/XML.cpp
+xml/XmlRpcProtocol.cpp
+rpc/RpcValue.cpp
+rpc/RpcProtocol.cpp
+rpc/RpcSystemService.cpp
+""")
+
+if platform == "darwin":
+    srl_src += Split("""sys/linux/System.cpp
+sys/osx/SystemInfo.cpp
+sys/osx/System.cpp	
+sys/osx/ProcessList.cpp
+sys/linux/Keyboard.cpp
+app/unix/Daemon.cpp
+fs/osx/FsObject.cpp
+fs/linux/FS.cpp
+fs/linux/Directory.cpp
+net/osx/NetworkInterface.cpp
+""")
+    srl_libs = []
+
+elif platform == "linux" or platform == "posix":
+    srl_src += Split("""sys/linux/System.cpp
+sys/linux/SystemInfo.cpp
+sys/linux/ProcessList.cpp
+sys/linux/Keyboard.cpp
+app/unix/Daemon.cpp
+fs/linux/FsObject.cpp
+fs/linux/Directory.cpp
+fs/linux/FS.cpp
+net/linux/NetworkInterface.cpp
+""")
+    srl_libs = ["pthread"]
+    
+elif platform.startswith("win") or platform == "cygwin":
+    srl_src += Split("""sys/windows/System.cpp
+sys/windows/SystemInfo.cpp
+sys/windows/ProcessList.cpp
+sys/windows/Keyboard.cpp
+fs/windows/FsObject.cpp
+fs/windows/Directory.cpp
+fs/windows/FS.cpp
+net/windows/NetworkInterface.cpp
+""")
+    srl_libs = []
+
+src_files = []
+for src in srl_src:
+    src_files.append("build/%s" % src)
+
+# --- Target = srl -----
+if str(Platform()) == 'darwin':
+    env.Append(SHLINKFLAGS = '-dynamiclib -framework JavaVM')
+#    env['SHLIBSUFFIX'] = '.jnilib'
+
+BuildDir('build', 'src')
+srllib = env.SharedLibrary(target="srl", LIBS=srl_libs, CPPPATH=["include", "srcBuildDir('build', 'src', duplicate = 0)"], source=src_files)
+srl_install = env.Install('../lib', srllib)
+env.Alias('srl', [srllib, srl_install])
+
+# --- Target = tests -----
+test_src = Split("""build/test/test.cpp
+build/test/TypeTest.cpp
+build/test/StringTest.cpp
+build/test/SystemTest.cpp
+build/test/ThreadTest.cpp
+build/test/fs/FsTests.cpp
+build/test/util/DictTest.cpp
+build/test/util/VectorTest.cpp
+build/test/net/SocketTest.cpp
+build/test/net/HttpTests.cpp
+build/test/XmlTest.cpp
+""")
+BuildDir('build/test', 'test')
+testapp = env.Program(target="tests", LIBS='srl', LIBPATH='../lib', 
+CPPPATH=["../cpp/include", "test", "srcBuildDir('build/test', 'test', duplicate = 0)"], source=test_src)
+env.Alias('tests', [testapp, env.Install('../bin', testapp)])
+
+testout = env.Program(target="testout", LIBS='srl', LIBPATH='../lib', 
+CPPPATH=["../cpp/include", "test", "srcBuildDir('build/test', 'test', duplicate = 0)"], source=["build/test/testout.cpp"])
+env.Alias('tests', [testout, env.Install('../bin', testout)])
+
+# --- Target = examples -----
+BuildDir('build/examples', 'examples')
+netool = env.Program(target="netool", LIBS='srl', LIBPATH='../lib', 
+CPPPATH=["../cpp/include", "examples", "srcBuildDir('build/examples', 'examples', duplicate = 0)"], 
+        source=['build/examples/nettool.cpp'])
+
+env.Alias('examples', [netool, env.Install('../bin', netool)])
+
+filetool = env.Program(target="filetool", LIBS='srl', LIBPATH='../lib', 
+CPPPATH=["../cpp/include", "examples", "srcBuildDir('build/examples', 'examples', duplicate = 0)"], 
+        source=['build/examples/filetool.cpp'])
+env.Alias('examples', [filetool, env.Install('../bin', filetool)])
+
+proclist = env.Program(target="proclist", LIBS='srl', LIBPATH='../lib', 
+CPPPATH=["../cpp/include", "examples", "srcBuildDir('build/examples', 'examples', duplicate = 0)"], 
+        source=['build/examples/proclist.cpp'])
+env.Alias('examples', [proclist, env.Install('../bin', proclist)])
+
+sysmon = env.Program(target="sysmon", LIBS='srl', LIBPATH='../lib', 
+CPPPATH=["../cpp/include", "examples", "srcBuildDir('build/examples', 'examples', duplicate = 0)"], 
+        source=['build/examples/sysmonitor.cpp'])
+env.Alias('examples', [sysmon, env.Install('../bin', sysmon)])
+
+cpuid = env.Program(target="cpuid", LIBS='srl', LIBPATH='../lib', 
+CPPPATH=["../cpp/include", "examples", "srcBuildDir('build/examples', 'examples', duplicate = 0)"], 
+        source=['build/examples/cpuid.cpp'])
+env.Alias('examples', [cpuid, env.Install('../bin', cpuid)])
+
+httpd = env.Program(target="httpd", LIBS='srl', LIBPATH='../lib', 
+CPPPATH=["../cpp/include", "examples", "srcBuildDir('build/examples', 'examples', duplicate = 0)"], 
+        source=['build/examples/httpd.cpp'])
+env.Alias('examples', [httpd, env.Install('../bin', httpd)])
+
+env.Default('srl', 'tests')

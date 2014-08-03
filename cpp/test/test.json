@@ -1,0 +1,6 @@
+{
+    astring:"hello world",
+    adouble:5.2,
+    aint:123,
+    abool:false
+}

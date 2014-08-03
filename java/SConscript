@@ -1,0 +1,39 @@
+import os
+
+current_platform = os.sys.platform
+
+Import(["env"])
+
+jsrl_cls = env.Java(target='classes', source='src')
+env['JARCHDIR'] = os.path.join(env.Dir('.').get_abspath(),'classes')
+#print "\n\n" + env.Dir('.').get_abspath()
+
+
+jsrljar = env.Jar(target='jsrl.jar', source='classes')
+jar_install = env.Install('../lib', jsrljar)
+
+src = ['build/JavaPingImpl.cpp', 'build/JKeyboard.cpp', 'build/JSystemInfo.cpp']
+env.BuildDir('build', 'jni')
+includes = ["../cpp/include", "src", "srcBuildDir('build', 'src', duplicate = 0)"]
+
+if current_platform == 'darwin':
+    #print "OS X JNI Library Configuration"
+    env.Append(SHLINKFLAGS = '-dynamiclib -framework JavaVM')
+    env['SHLIBSUFFIX'] = '.jnilib'
+    #print "TODO autodetect java home with jni headers"
+    includes.append("/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Headers/")
+elif current_platform.startswith('linux'):
+    includes.append("%s/include" % os.environ['JAVA_HOME'])
+    includes.append("%s/include/linux" % os.environ['JAVA_HOME'])
+elif current_platform.startswith('cygwin') or current_platform.startswith('win'):
+    includes.append("%s/include" % os.environ['JAVA_HOME'])
+    includes.append("%s/include/win32" % os.environ['JAVA_HOME'])    
+
+jsrllib = env.SharedLibrary(target="jsrl", LIBS='srl', LIBPATH='../lib', 
+CPPPATH=includes, source=src)
+
+if str(Platform()) == 'darwin':
+    jsrl_install = env.Install('../lib', 'libjsrl.jnilib')
+else:
+    jsrl_install = env.Install('../lib', jsrllib)
+env.Alias('jsrl', [jsrllib, jsrl_install, jsrljar, jar_install])

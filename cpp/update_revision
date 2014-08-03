@@ -1,0 +1,25 @@
+#!/usr/bin/python
+
+import sys, os, platform
+
+
+if not os.path.exists("src/version.cpp"):
+	os.chdir("../")
+
+
+file = open("src/version.cpp", 'r')
+data = ""
+for line in file.readlines():
+    if line.count("#define SRL_REV") > 0:
+        ary = line.split(' ')
+        revision = int(ary[2])
+        revision += 1
+        data += "#define SRL_REVISION " + str(revision) + "\n"
+    else:
+        data += line
+
+file.close()
+
+file = open("src/version.cpp", 'w')
+file.write(data)
+file.close()

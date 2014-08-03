@@ -1,0 +1,20 @@
+Import(["env"])
+
+radmin_src = Split("""Monitor.cpp
+MonitoredProcess.cpp
+Radmin.cpp
+RadminFTP.cpp
+""")
+
+radmin_libs = ["srl"]
+
+src_files = []
+for src in radmin_src:
+    src_files.append("build/%s" % src)
+
+cpp_files = ["../cpp/include", "include", "srcBuildDir('build', 'src', duplicate = 0)"]
+BuildDir('build', 'src')
+radmin = env.Program(target="radmin", LIBS=radmin_libs, LIBPATH='../lib', 
+CPPPATH=cpp_files, source=src_files)
+env.Alias('examples', [radmin, env.Install('../bin', radmin)])
+

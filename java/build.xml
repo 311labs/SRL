@@ -1,0 +1,81 @@
+<project name="Java SRL Bindings" default="jar" basedir=".">
+	<description>
+        	Java SRL Bindings library for Native system calls
+	</description>
+	
+	<property environment="env"/>
+	<property name="project.name"    value="jsrl"/>
+	<property name="project.source"  value="src" />
+	<property name="project.output"  value="classes" />
+	<property name="project.dummy.source"  value="dummyjar" />
+	<property name="project.dummy.output"  value="dummy_classes" />
+	<property name="project.lib"     value="../lib" />
+	<property name="project.docs"     value="docs/api" />
+	<property name="project.examples"     value="examples" />
+	<property name="project.version" value="3.0" />
+
+	<!-- creates a clean system like ant was never run -->
+	<target name="clean" depends="jar-clean">
+		<delete dir="${project.output}" />
+		<mkdir dir="${project.output}" />
+		<delete dir="${project.dummy.output}" />
+		<mkdir dir="${project.dummy.output}" />		
+	</target>
+	
+	<!--  -->
+	<target name="init" depends="">
+		<mkdir  dir="${project.lib}" />
+		<mkdir dir="${project.output}" />
+		<mkdir dir="${project.dummy.output}" />
+	</target>
+	
+	<!-- compile all the source -->
+	<target name="compile" depends="init">
+		<javac srcdir="${project.source}" destdir="${project.output}" debug="false" deprecation="true" excludes="**/TEST/**,**/save/**">
+		</javac>
+		<javac srcdir="${project.dummy.source}" destdir="${project.dummy.output}" debug="false" deprecation="true" excludes="**/TEST/**,**/save/**">
+		</javac>
+	</target>
+	
+	<!-- build all of the files -->
+	<target name="all" depends="clean,jar,compile"></target>
+
+	<!-- build all the jar files -->
+	<target name="jar" depends="compile">
+		<jar destfile="${project.lib}/jsrl.jar" basedir="${project.output}">
+		</jar>
+		<jar destfile="${project.lib}/jsrl_dummy.jar" basedir="${project.dummy.output}">
+		</jar>		
+	</target>	
+
+	<target name="jar-clean">
+		<delete file="${project.lib}/jsrl.jar" />
+		<delete file="${project.lib}/jsrl_dummy.jar" />
+	</target>
+
+
+<!--    run javadoc on the java source files -->
+
+   <target name="docs" description="Creates the documentation" depends="" >
+      <!-- generate the docs -->
+
+     <javadoc
+           packagenames="jsrl.*"
+           destdir="${project.docs}"
+           sourcepath="${project.source}"
+           author="true"
+           version="true"
+           use="true"
+           access="public"
+           windowtitle="${project.name} API Documentation">
+          
+       <doctitle><![CDATA[<H1>${project.name} API Documentation</H1>]]></doctitle>
+       <bottom><![CDATA[<i>Copyright &#169; 2005 Ian Starnes, Inc All Rights Reserved.</i>]]></bottom>
+      </javadoc>
+      
+   </target>
+
+
+	
+</project>
+

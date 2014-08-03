@@ -1,0 +1,36 @@
+= INSTALLATION =
+
+You can use SCons or on Unix systems you can use make.
+
+
+== Make ==
+cd cpp
+make
+sudo make install
+
+== SCons ==
+scons 
+
+== MAC OSX ==
+
+=== C++ Support ===
+libsrl.dylib needs to go in your /usr/lib directory 
+or 
+add its parent folder to the DYLD_LIBRARY_PATH environment variable
+
+=== Java Support ===
+libjsrl.jnilib  needs to go in your /usr/lib/java directory 
+or 
+add its parent folder to the -Djava.library.path=parent_folder_path
+
+
+
+
+
+== GENERAL NOTES ==
+Remember to be static_cast things when changing types.  This is important 
+for such things as float64 and float32 conversions.
+
+
+7.22.2009 - added System::Reboot() method (windows, linux, NO OSX)
+7.22.2009 - added NetworkInterface setIP methods (linux, OSX, no windows)
